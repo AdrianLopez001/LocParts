@@ -1,0 +1,115 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #0f1115;
+  color: #eef0f3;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: #a9adb8;
+  margin-top: 0;
+}
+
+.quote-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  background: #171a21;
+  border: 1px solid #262a34;
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.quote-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: #c7cad2;
+}
+
+.quote-form input,
+.quote-form textarea {
+  background: #0f1115;
+  border: 1px solid #2c313c;
+  border-radius: 6px;
+  color: #eef0f3;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.quote-form button {
+  align-self: flex-start;
+  background: #4f7cff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.quote-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #7b8091;
+  margin: -0.4rem 0 0;
+}
+
+.erro {
+  color: #ff6b6b;
+}
+
+.quote-result table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.quote-result th,
+.quote-result td {
+  border-bottom: 1px solid #262a34;
+  padding: 0.5rem 0.4rem;
+  text-align: left;
+}
+
+.quote-result tr.nao-encontrado {
+  color: #7b8091;
+  font-style: italic;
+}
+
+.total {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.quote-result pre {
+  white-space: pre-wrap;
+  background: #0f1115;
+  border: 1px solid #262a34;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+}

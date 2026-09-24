@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: autoquote-db
+    environment:
+      POSTGRES_DB: autoquote
+      POSTGRES_USER: autoquote
+      POSTGRES_PASSWORD: autoquote
+    ports:
+      - "5432:5432"
+    volumes:
+      - autoquote-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autoquote"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: autoquote-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: autoquote
+      DB_USER: autoquote
+      DB_PASSWORD: autoquote
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    container_name: autoquote-frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:8080
+    ports:
+      - "5173:5173"
+
+volumes:
+  autoquote-db-data:
