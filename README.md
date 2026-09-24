@@ -1,163 +1,135 @@
 # 🚗 AutoQuote Copilot | Automotive Parts Matcher & AI Quotation Engine
 
-Sistema inteligente para catalogação de peças por placa veicular e automação de orçamentos e cotações, integrando banco de dados relacional e agente autônomo de IA (Claude Code / Anthropic API).
+PoC de estudo/portfolio de um sistema real que desenvolvi para automatizar a
+identificação de peças por placa veicular e a montagem de orçamentos cotados.
+Esta versão pública roda com **dados 100% sintéticos** e com a etapa de
+"agente de IA" **simulada** (`MockAiAgentService`), para não depender de
+chave de API paga nem de acesso a sistemas internos.
 
 ---
 
-## 📌 Visão Geral do Problema
+## 📌 Contexto e problema original
 
-Consultores automotivos enfrentavam gargalos operacionais críticos no atendimento pós-venda:
+No sistema real, consultores de pós-venda:
+- gastavam tempo cruzando manualmente o modelo do carro com catálogos de
+  peças originais (OEM) e de reposição (Aftermarket);
+- pesquisavam preços em múltiplos fornecedores externos;
+- digitavam o orçamento item a item no sistema de gestão interno.
 
-- **Identificação manual de peças:** cruzar o modelo do carro com catálogos de diferentes montadoras (OEM) e marcas de reposição gerava lentidão e margem para devoluções por incompatibilidade.
-- **Cotação fragmentada:** pesquisar preços e disponibilidade manualmente em múltiplos fornecedores externos consumia tempo considerável por veículo.
-- **Digitação no sistema de gestão:** cadastrar item por item e montar o orçamento manualmente era repetitivo e suscetível a erros de digitação.
+A solução original resolve isso montando um contexto estruturado
+(placa + itens já cruzados com referências) e delegando a um agente de IA
+(Claude Code) a tarefa de acessar o sistema de gestão e cotar os preços em
+sites parceiros.
+
+## 💡 O que esta versão pública demonstra
+
+- **Matching de peças por texto livre** (`PartMatchingService`): normaliza o
+  texto digitado e resolve para a peça do catálogo via sinônimos.
+- **Cross-reference de fabricante** (`ManufacturerReference` +
+  `Compatibility`): filtra quais códigos OEM/Aftermarket são compatíveis com
+  o veículo consultado.
+- **Geração de contexto estruturado** (`MockAiAgentService.construirContexto`):
+  o mesmo tipo de texto corrido que, no sistema original, é enviado ao agente
+  de IA.
+- **Orquestração do orçamento**: monta o orçamento final e "cota" preços via
+  `ExternalPriceMockService` (mock — sem scraping real).
+
+A parte que na versão real chama a API da Claude / Claude Code foi
+substituída por uma regra determinística (`MockAiAgentService`), documentada
+no código, para manter o projeto 100% funcional sem custo de API.
 
 ---
 
-## 💡 A Solução
+## 🛠️ Stack
 
-Pipeline integrado que transforma uma entrada simples (placa + lista de peças em linguagem informal) em um orçamento completo e cotado:
-
-1. **Decodificação e cruzamento de peças:** a partir da placa, o sistema consulta as especificações do veículo e mapeia as peças solicitadas para os códigos exatos de montadora (OEM) e de fabricantes de reposição (Aftermarket).
-2. **Engenharia de contexto estruturada:** os dados são compilados em um texto corrido, determinístico e padronizado, pronto para ser consumido por um agente de IA sem ambiguidade.
-3. **Orquestração com agente autônomo (Claude Code):** o agente recebe o contexto formatado, acessa o sistema de gestão para montar o orçamento e realiza pesquisas em sites externos para cotação de preços.
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Agente de IA & Desenvolvimento:** Claude Code CLI, Anthropic Claude API (engenharia de prompts e workflows agentic), VS Code
-- **Banco de Dados:** PostgreSQL 16 (modelagem relacional de veículos, compatibilidades e catálogo de peças) com fallback autônomo para SQLite embutido
-- **Backend & Resolução:** Node.js (Engine de resolução veicular, NLP automotivo e cotação)
-- **Frontend / Dashboard:** Interface web responsiva em Dark Mode com visualização de placa Mercosul e orçamentação em tempo real
-- **Infraestrutura:** Docker, Docker Compose, VPS Hostinger (Linux)
+- **Backend:** Java 17, Spring Boot 3 (Web, Data JPA, Validation), Lombok
+- **Banco de dados:** PostgreSQL
+- **Frontend:** React + Vite
+- **Infra:** Docker / Docker Compose
 
 ---
 
-## 🏗️ Arquitetura do Sistema
+## 🏗️ Arquitetura
 
 ```mermaid
 flowchart TD
-    A[Consultor Automotivo] -->|Placa + Peças Solicitadas| B(Módulo de Resolução Veicular)
-    B --> C[(PostgreSQL: Catálogo & Compatibilidades)]
-    C -->|Dados Técnicos + Códigos Fabricante| D(Gerador de Contexto Estruturado)
-    D -->|Instrução Determinística| E[Claude Code Agent / Anthropic API]
-    E -->|Preenchimento Automático| F[(Sistema de Gestão Interno ERP)]
-    E -->|Cotação de Preços Externa| G[Sites e Distribuidores de Autopeças]
-    F & G --> H[Orçamento Consolidado Final]
+    A[Consultor / Frontend React] -->|Placa + Itens| B(QuoteController)
+    B --> C(MockAiAgentService)
+    C --> D(VehicleService)
+    C --> E(PartMatchingService)
+    E --> F[(PostgreSQL: pecas, referencias_fabricante, compatibilidade)]
+    C --> G(ExternalPriceMockService)
+    C --> H[(PostgreSQL: orcamentos, orcamento_itens)]
+    C -->|Contexto + Orcamento| B --> A
 ```
 
 ---
 
-## ⚙️ Modelagem do Banco de Dados (PostgreSQL)
+## 📦 Como executar
 
-O banco relacional modela com fidelidade a complexidade do ecossistema automotivo:
-
-- **`veiculos`**: dados de placa/chassi, marca, modelo, ano de fabricação, ano do modelo, motorização e versão.
-- **`fabricantes`**: montadoras (OEM) e fabricantes de autopeças (Aftermarket: Bosch, TRW, Fras-le, Nakata, Cofap, Mahle, etc.).
-- **`pecas`**: cadastro mestre com código interno, nome genérico, categoria e posição.
-- **`referencias_fabricante`**: tabela de cross-reference ligando a peça aos códigos originais de montadora e marcas de reposição.
-- **`compatibilidade`**: tabela associativa que relaciona quais versões de veículos aceitam cada peça/referência com notas técnicas.
-- **`cotacoes_fornecedores`**: registros de distribuidores com preços de tabela, preços cotados, prazos e estoque para simulação do agente.
-
----
-
-## 📦 Como Executar o Projeto Localmente (PoC)
-
-### Pré-requisitos
-
-- Node.js (v18+)
-- *(Opcional)* Docker e Docker Compose instalados
-- *(Opcional)* Claude Code CLI configurado com sua chave de API (`export ANTHROPIC_API_KEY=sua_chave`)
-
----
-
-### 1. Clonar o repositório
+### Opção 1 — Docker Compose (recomendado)
 
 ```bash
-git clone https://github.com/seu-usuario/autoquote-copilot.git
-cd autoquote-copilot
+docker-compose up --build
 ```
 
----
+- Backend: http://localhost:8080
+- Frontend: http://localhost:5173
+- PostgreSQL: localhost:5432 (usuário/senha/banco: `autoquote`)
 
-### 2. Subir o Banco com Docker (PostgreSQL)
-
-O `docker-compose.yml` desta PoC sobe o container do PostgreSQL, automaticamente populado via `db/init.sql`:
+### Opção 2 — Rodando localmente
 
 ```bash
-docker-compose up -d
+# Banco de dados
+docker run --name autoquote-db -e POSTGRES_DB=autoquote \
+  -e POSTGRES_USER=autoquote -e POSTGRES_PASSWORD=autoquote \
+  -p 5432:5432 -d postgres:16-alpine
+
+# Backend
+cd backend
+mvn spring-boot:run
+
+# Frontend (em outro terminal)
+cd frontend
+npm install
+npm run dev
 ```
 
-> **Nota de Execução Autônoma:** Caso deseje rodar a PoC imediatamente sem Docker ativo, o projeto inclui uma camada de fallback transparente com SQLite (`autoquote.db`). O script de carga pode ser executado com:
-> ```bash
-> npm run seed
-> ```
+Os dados (veículos, peças, referências e compatibilidade) são carregados
+automaticamente via `data.sql` na subida da aplicação.
 
 ---
 
-### 3. Exemplo de Uso via CLI
-
-Execute a resolução do veículo e gere o contexto determinístico formatado para o agente:
+## 🔎 Exemplo de uso da API
 
 ```bash
-node cli.js --placa ABC1D23 --itens "disco de freio dianteiro, pastilha"
+curl -X POST http://localhost:8080/api/orcamentos \
+  -H "Content-Type: application/json" \
+  -d '{
+    "placa": "ABC1D23",
+    "itens": ["disco de freio dianteiro", "pastilha de freio dianteira"]
+  }'
 ```
 
-**Exemplo de saída (contexto gerado para o agente):**
-
-```text
-Veículo: Volkswagen Gol 2021/2022 1.0 12V MPI
-Item 1: Disco de freio dianteiro ventilado — Ref. OEM: 5U0615301 | Ref. Bosch: 0 986 BB4 043 | Ref. Fras-le: RCDI00870 | Ref. Nakata: NKF 6043
-Item 2: Pastilha de freio dianteira — Ref. OEM: 5U0698151A | Ref. Bosch: 0 986 BB0 735 | Ref. Fras-le: PD/58 | Ref. TRW: RCPT02840
-Ação solicitada: montar orçamento e cotar os itens acima em fornecedores parceiros.
-```
-
-#### Executar simulação de cotação externa e montagem de orçamento via CLI:
-
-```bash
-node cli.js --placa ABC1D23 --itens "disco de freio dianteiro, pastilha" --cotar
-```
+Placas cadastradas na PoC: `ABC1D23` (VW Gol 2015), `XYZ2E45` (Chevrolet
+Onix 2019), `JJK9B12` (Fiat Argo 2021). Veja mais exemplos em
+[`docs/exemplos-api.md`](docs/exemplos-api.md).
 
 ---
 
-### 4. Interface Web / Dashboard Interativo
+## 📈 Resultado esperado (no sistema original)
 
-Inicie o servidor integrado com API REST e Dashboard visual:
-
-```bash
-npm start
-```
-
-Acesse em seu navegador: **`http://localhost:3000`**
-
-Recursos do Dashboard:
-- Input interativo estilo placa Mercosul oficial
-- Resolução e telemetria veicular decodificada
-- Cards de peças com badges OEM e Aftermarket
-- Visualizador com botão "Copiar Contexto" para Claude Code
-- Simulador de Cotação com distribuidores parceiros e cálculo financeiro do orçamento da oficina
+- Redução do tempo de montagem de orçamento de minutos para segundos.
+- Menos devoluções por incompatibilidade de peças, graças à padronização
+  OEM/Aftermarket.
+- Consultor deixa de digitar manualmente e passa a apenas validar o
+  orçamento gerado.
 
 ---
 
-## 🧪 Executando os Testes Automatizados
+## 🔒 Nota de compliance e privacidade
 
-O projeto inclui uma suíte completa de testes de unidade cobrindo normalização de placas, validação Mercosul, parser de linguagem informal, cross-reference de fornecedores e consolidação de orçamento:
-
-```bash
-npm test
-```
-
----
-
-## 📈 Impacto e Resultados
-
-- **Redução do lead time:** o tempo médio para identificação de peças e cotação caiu de minutos para segundos.
-- **Menos erros de compatibilidade:** a padronização dos códigos OEM/fabricante reduziu retrabalho e compra de peça errada.
-- **Automação operacional:** o consultor deixa de digitar manualmente e passa a apenas validar e aprovar o orçamento final.
-
----
-
-## 🔒 Nota de Compliance e Privacidade
-
-Este repositório é uma Prova de Conceito (PoC) técnica e educacional. Todos os dados de clientes, acessos a sistemas proprietários internos e chaves de API foram sanitizados e substituídos por dados sintéticos/mockados, em conformidade com boas práticas de segurança e sigilo de dados.
+Este repositório é uma Prova de Conceito (PoC) técnica e educacional.
+Todos os dados de veículos, peças e fornecedores são sintéticos/mockados.
+Nenhum dado de cliente, credencial, endpoint interno ou regra de negócio
+proprietária da empresa original foi incluído aqui.

@@ -1,9 +1,31 @@
+# Dependencies
 node_modules/
+frontend/node_modules/
+
+# Build outputs
+target/
+dist/
+frontend/dist/
+*.class
+*.jar
+*.war
+
+# Environment & configs
 .env
 *.db
 *.db-journal
 *.log
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS & Archives
 .DS_Store
-dist/
-coverage/
+Thumbs.db
 *.zip
+coverage/
