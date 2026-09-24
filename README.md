@@ -6,6 +6,10 @@ Esta versão pública roda com **dados 100% sintéticos** e com a etapa de
 "agente de IA" **simulada** (`MockAiAgentService`), para não depender de
 chave de API paga nem de acesso a sistemas internos.
 
+<p align="center">
+  <img src="docs/screenshot-spin.png" alt="Sistema CARTEC Copilot - Interface Operacional" width="100%" style="border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+</p>
+
 ---
 
 ## 📌 Contexto e problema original
@@ -70,6 +74,14 @@ flowchart TD
 - 📖 **[Estudo de Caso & Arquitetura Detalhada](docs/arquitetura-e-funcionamento.md)**: Análise completa do problema de negócio, modelagem relacional (ER), engenharia de contexto para Agentes de IA e rastreamento passo a passo.
 - 🖥️ **[Demonstração Interativa Standalone (docs/demo.html)](docs/demo.html)**: Simulação visual do pipeline de dados executável diretamente no navegador, sem precisar subir Docker, banco ou backend.
 - 📑 **[Exemplos de Chamadas de API](docs/exemplos-api.md)**: Payloads de request e response para testes via cURL ou Postman.
+
+### 📸 Galeria de Telas da Demonstração
+
+| Nível 2: Spin 1.8 (Pesquisa IA • Decodificação VIN) | Nível 1: VW Gol 1.6 (Estoque Próprio • Custo R$ 0) |
+| :---: | :---: |
+| <img src="docs/screenshot-spin.png" width="500"> | <img src="docs/screenshot-gol.png" width="500"> |
+| **Auditoria & Bloco Copiado para WhatsApp** | **GM Onix 1.0 (Validação de Motor a Seco vs Óleo)** |
+| <img src="docs/screenshot-crawler.png" width="500"> | <img src="docs/screenshot-onix.png" width="500"> |
 
 ---
 

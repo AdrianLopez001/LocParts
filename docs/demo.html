@@ -1089,6 +1089,18 @@ Observações:
         toast.style.display = 'none';
       }, 3200);
     }
+
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
+      const cenario = params.get('cenario') || 'spin';
+      carregarCenario(cenario);
+      if (params.get('openCrawler') === 'true') {
+        toggleCrawler();
+      }
+      if (params.get('toast') === 'true') {
+        mostrarToast('Bloco copiado com sucesso para a área de transferência!');
+      }
+    };
   </script>
 </body>
 </html>
