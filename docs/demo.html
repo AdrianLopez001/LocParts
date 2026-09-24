@@ -3,242 +3,508 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoQuote Copilot — Demonstração Didática & Arquitetura</title>
+  <title>Sistema CARTEC Copilot — Demonstração Operacional & Arquitetura</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --border: #334155;
+      --bg: #090d16;
+      --surface: #111827;
+      --surface-card: #162032;
+      --surface-hover: #1f2d45;
+      --border: #24324a;
+      --border-focus: #38bdf8;
+      
+      --bosch-blue: #00d2ff;
       --primary: #38bdf8;
-      --primary-hover: #0284c7;
-      --accent: #10b981;
-      --accent-subtle: rgba(16, 185, 129, 0.15);
-      --warning: #f59e0b;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      
+      --purple-ai: #a855f7;
+      --purple-ai-hover: #9333ea;
+      --purple-glow: rgba(168, 85, 247, 0.35);
+
+      --accent-green: #10b981;
+      --accent-green-subtle: rgba(16, 185, 129, 0.15);
+      
+      --warning-amber: #f59e0b;
+      --warning-amber-subtle: rgba(245, 158, 11, 0.15);
+      
+      --danger-red: #ef4444;
       --text: #f8fafc;
       --text-muted: #94a3b8;
-      --code-bg: #090d16;
+      --text-dark: #64748b;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
       background-color: var(--bg);
       color: var(--text);
-      line-height: 1.6;
-      padding: 24px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
     }
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 32px;
-      padding-bottom: 24px;
+    /* Top Navigation Bar */
+    .topbar {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    .badge {
-      display: inline-block;
-      background: var(--accent-subtle);
-      color: var(--accent);
-      padding: 4px 12px;
-      border-radius: 999px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.1rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .finops-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(168, 85, 247, 0.12);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #d8b4fe;
+      padding: 5px 12px;
+      border-radius: 6px;
+    }
+
+    /* Main Container */
+    .main-content {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+      flex: 1;
+    }
+
+    /* Preset Scenarios Switcher */
+    .scenario-picker {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .scenario-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scenario-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-scenario {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
       font-size: 0.85rem;
       font-weight: 600;
-      margin-bottom: 12px;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 8px;
+    .btn-scenario:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary);
     }
 
-    .subtitle {
-      color: var(--text-muted);
-      font-size: 1.05rem;
-      max-width: 750px;
-      margin: 0 auto;
+    .btn-scenario.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
     }
 
-    .grid {
+    /* Top Query Bar (URL bar look & feel) */
+    .query-header {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+
+    .query-form {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin-bottom: 32px;
+      grid-template-columns: 180px 1fr 160px;
+      gap: 14px;
+      align-items: flex-end;
     }
 
     @media (max-width: 768px) {
-      .grid {
+      .query-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .input-field {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-glow);
+    }
+
+    .btn-search {
+      background: var(--primary);
+      color: #090d16;
+      border: none;
+      padding: 11px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-search:hover {
+      background: #7dd3fc;
+      transform: translateY(-1px);
+    }
+
+    /* Split Operational Dashboard */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 950px) {
+      .dashboard-grid {
         grid-template-columns: 1fr;
       }
     }
 
     .card {
-      background: var(--card-bg);
+      background: var(--surface-card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
     }
 
-    .card h2 {
-      font-size: 1.25rem;
-      margin-bottom: 16px;
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(22, 32, 50, 0.7);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
       gap: 8px;
-      color: var(--primary);
     }
 
-    label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
+    .card-body {
+      padding: 20px;
+      flex: 1;
     }
 
-    select, textarea, input {
-      width: 100%;
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      margin-bottom: 16px;
-      outline: none;
-      transition: border-color 0.2s;
+    /* Checklist Section (Dentro de Casa) */
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
-    select:focus, textarea:focus {
-      border-color: var(--primary);
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #cbd5e1;
     }
 
-    .btn {
-      width: 100%;
-      background: var(--primary);
-      color: #0f172a;
-      border: none;
-      padding: 12px 20px;
-      font-size: 1rem;
+    .check-icon {
+      color: var(--accent-green);
       font-weight: 700;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      font-size: 0.95rem;
     }
 
-    .btn:hover {
-      background: var(--primary-hover);
+    .vehicle-info-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+
+    .vehicle-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vin-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Item Box */
+    .item-status-row {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .item-name {
+      font-weight: 700;
+      font-size: 0.95rem;
       color: #fff;
     }
 
-    .btn:active {
-      transform: scale(0.98);
+    .badge-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
     }
 
-    /* Pipeline Step Tracker */
-    .pipeline {
+    .badge-orange {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .badge-green {
+      background: var(--accent-green-subtle);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    /* WhatsApp Confirmation Block */
+    .whatsapp-box {
+      border: 1px dashed var(--border);
+      background: rgba(9, 13, 22, 0.6);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+
+    .whatsapp-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 32px;
-      position: relative;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
-    .step-indicator {
-      flex: 1;
-      text-align: center;
-      position: relative;
-      padding: 12px 8px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin: 0 4px;
+    .whatsapp-title {
       font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      transition: all 0.3s;
-    }
-
-    .step-indicator.active {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    .step-indicator.done {
-      background: var(--accent-subtle);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    /* Visualizer Tabs / Flow */
-    .results-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .step-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      animation: fadeIn 0.4s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .step-title {
-      font-size: 1.05rem;
       font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-copy {
+      background: #27272a;
+      color: #fff;
+      border: 1px solid #3f3f46;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
       display: flex;
       align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: #3f3f46;
+      border-color: var(--primary);
+    }
+
+    .whatsapp-preview {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #a1a1aa;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    /* Right Column: AI Agent "Fora de Casa" */
+    .ai-banner {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(56, 189, 248, 0.08));
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
       justify-content: space-between;
-      margin-bottom: 12px;
-      color: var(--text);
+      align-items: center;
     }
 
-    .step-desc {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-bottom: 12px;
+    .ai-banner-title {
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #f3e8ff;
     }
 
-    pre {
-      background: var(--code-bg);
-      padding: 14px;
+    .ai-banner-desc {
+      font-size: 0.82rem;
+      color: #d8b4fe;
+    }
+
+    .btn-ai {
+      background: var(--purple-ai);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
       border-radius: 8px;
-      font-family: "Fira Code", monospace, Consolas;
-      font-size: 0.88rem;
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      color: #38bdf8;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 16px var(--purple-glow);
+      transition: all 0.2s;
     }
 
+    .btn-ai:hover {
+      background: var(--purple-ai-hover);
+      transform: scale(1.02);
+    }
+
+    /* References Table */
     .table-container {
       overflow-x: auto;
+      margin-bottom: 20px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 8px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
 
     th, td {
@@ -248,315 +514,581 @@
     }
 
     th {
-      background: var(--code-bg);
+      background: var(--bg);
       color: var(--text-muted);
       font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .badge-oem {
-      background: rgba(56, 189, 248, 0.2);
+    .ref-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
       color: var(--primary);
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 600;
     }
 
-    .badge-aftermarket {
-      background: rgba(245, 158, 11, 0.2);
-      color: var(--warning);
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
+    .brand-tag {
       font-weight: 600;
+      color: #e2e8f0;
     }
 
-    .total-banner {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(56, 189, 248, 0.1));
-      border: 1px solid var(--accent);
-      border-radius: 8px;
+    .spec-text {
+      color: #94a3b8;
+      font-size: 0.82rem;
+    }
+
+    /* "Confira antes de comprar" Guardrail Box */
+    .guardrail-box {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 10px;
       padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .guardrail-title {
+      color: #fbbf24;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .guardrail-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .guardrail-list li {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      padding-left: 18px;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    .guardrail-list li::before {
+      content: "•";
+      position: absolute;
+      left: 6px;
+      color: #fbbf24;
+      font-weight: bold;
+    }
+
+    .guardrail-highlight {
+      color: #fde68a;
+      font-weight: 600;
+    }
+
+    /* Crawler URLs Accordion */
+    .crawler-drawer {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .crawler-trigger {
+      padding: 10px 14px;
+      background: rgba(22, 32, 50, 0.5);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #a855f7;
+      cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 16px;
     }
 
-    .total-price {
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: var(--accent);
+    .crawler-list {
+      max-height: 140px;
+      overflow-y: auto;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #64748b;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .crawler-list.open {
+      display: flex;
+    }
+
+    /* Actions Bar */
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, #7c3aed, #9333ea);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-save:hover {
+      opacity: 0.9;
+    }
+
+    .save-note {
+      font-size: 0.78rem;
+      color: #f59e0b;
+      line-height: 1.3;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10b981;
+      color: #090d16;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 999;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <div class="badge">ESTUDO DE CASO & DEMO OFFLINE</div>
-    <h1>🚗 AutoQuote Copilot</h1>
-    <p class="subtitle">
-      Demonstração didática interativa do pipeline de matching de peças automotivas, 
-      filtragem de compatibilidade e engenharia de contexto para Agente de IA.
-    </p>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">CARTEC</div>
+      <div class="brand-title">
+        <span>AutoQuote Copilot</span>
+        <span class="badge-status">Hostinger VPS • Online</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="finops-badge" id="finopsIndicator">
+        ⚡ Custo desta busca: <strong>R$ 3,15</strong>
+      </div>
+    </div>
   </header>
 
-  <!-- Painel de Controle da Demonstração -->
-  <div class="grid">
-    <div class="card">
-      <h2>1. Entrada da Simulação</h2>
-      
-      <label for="selectPlaca">Veículo Cadastrado (Mock):</label>
-      <select id="selectPlaca" onchange="atualizarInfoVeiculo()">
-        <option value="ABC1D23">ABC1D23 — Volkswagen Gol 2015 1.6 Trendline</option>
-        <option value="XYZ2E45">XYZ2E45 — Chevrolet Onix 2019 1.0 LT</option>
-        <option value="JJK9B12">JJK9B12 — Fiat Argo 2021 1.3 Drive</option>
-      </select>
+  <!-- Main Content -->
+  <main class="main-content">
 
-      <label for="textareaItens">Peças Solicitadas em Texto Livre:</label>
-      <textarea id="textareaItens" rows="4">disco de freio dianteiro
-pastilha de freio dianteira
-filtro de oleo</textarea>
-
-      <button class="btn" onclick="executarPipeline()">▶ Simular Pipeline Didático</button>
-    </div>
-
-    <div class="card">
-      <h2>2. O Conceito Arquitetural</h2>
-      <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 12px;">
-        Esta PoC demonstra como <strong>evitar alucinações de LLMs</strong> ao nunca delegar identificação de catálogo diretamente para a IA:
-      </p>
-      <ul style="font-size: 0.88rem; color: #cbd5e1; padding-left: 18px; line-height: 1.8;">
-        <li><strong>Fase Determinística:</strong> O PostgreSQL valida modelo, ano e motorização através da tabela de compatibilidade.</li>
-        <li><strong>Engenharia de Contexto:</strong> Apenas referências verificadas (OEM e Aftermarket) são inseridas no prompt do agente.</li>
-        <li><strong>Agente de Cotação:</strong> A IA foca na orquestração dos fornecedores e síntese final do orçamento.</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Barra de Etapas do Pipeline -->
-  <div class="pipeline">
-    <div class="step-indicator done" id="ind-1">1. Veículo</div>
-    <div class="step-indicator done" id="ind-2">2. Matching Texto</div>
-    <div class="step-indicator done" id="ind-3">3. Compatibilidade</div>
-    <div class="step-indicator done" id="ind-4">4. Contexto IA</div>
-    <div class="step-indicator done" id="ind-5">5. Cotação Final</div>
-  </div>
-
-  <!-- Resultados Detalhados do Pipeline -->
-  <div class="results-container" id="resultsContainer">
-    <!-- Gerado dinamicamente via JS -->
-  </div>
-</div>
-
-<script>
-// Base de dados sintética local idêntica ao data.sql da PoC
-const DATABASE = {
-  veiculos: {
-    'ABC1D23': { marca: 'Volkswagen', modelo: 'Gol', ano: 2015, motorizacao: '1.6', versao: 'Trendline' },
-    'XYZ2E45': { marca: 'Chevrolet', modelo: 'Onix', ano: 2019, motorizacao: '1.0', versao: 'LT' },
-    'JJK9B12': { marca: 'Fiat', modelo: 'Argo', ano: 2021, motorizacao: '1.3', versao: 'Drive' }
-  },
-  pecas: [
-    { id: 1, nome: 'Disco de freio dianteiro', categoria: 'Freios', sinonimos: ['disco de freio dianteiro', 'disco dianteiro', 'disco freio diant'] },
-    { id: 2, nome: 'Pastilha de freio dianteira', categoria: 'Freios', sinonimos: ['pastilha de freio dianteira', 'pastilha dianteira', 'pastilha freio diant'] },
-    { id: 3, nome: 'Filtro de oleo', categoria: 'Motor', sinonimos: ['filtro de oleo', 'filtro oleo', 'filtro de óleo'] },
-    { id: 4, nome: 'Correia dentada', categoria: 'Motor', sinonimos: ['correia dentada', 'correia do motor'] },
-    { id: 5, nome: 'Amortecedor dianteiro', categoria: 'Suspensao', sinonimos: ['amortecedor dianteiro', 'amortecedor diant'] }
-  ],
-  referencias: [
-    // Disco
-    { id: 1, pecaId: 1, tipo: 'OEM', fabricante: 'Volkswagen', codigo: '5U0615301A', compat: [{ marca: 'Volkswagen', modelo: 'Gol', anoMin: 2013, anoMax: 2019 }] },
-    { id: 2, pecaId: 1, tipo: 'OEM', fabricante: 'Chevrolet', codigo: '52099943', compat: [{ marca: 'Chevrolet', modelo: 'Onix', anoMin: 2017, anoMax: 2022 }] },
-    { id: 3, pecaId: 1, tipo: 'AFTERMARKET', fabricante: 'Fras-le', codigo: 'FD1234', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
-    { id: 4, pecaId: 1, tipo: 'AFTERMARKET', fabricante: 'TRW', codigo: 'DF6098', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
-    
-    // Pastilha
-    { id: 5, pecaId: 2, tipo: 'OEM', fabricante: 'Volkswagen', codigo: '5U0698151', compat: [{ marca: 'Volkswagen', modelo: 'Gol', anoMin: 2013, anoMax: 2019 }] },
-    { id: 6, pecaId: 2, tipo: 'OEM', fabricante: 'Chevrolet', codigo: '13502447', compat: [{ marca: 'Chevrolet', modelo: 'Onix', anoMin: 2017, anoMax: 2022 }] },
-    { id: 7, pecaId: 2, tipo: 'AFTERMARKET', fabricante: 'Bosch', codigo: 'BP1234', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
-    { id: 8, pecaId: 2, tipo: 'AFTERMARKET', fabricante: 'Fras-le', codigo: 'PD5678', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
-    
-    // Filtro
-    { id: 9, pecaId: 3, tipo: 'OEM', fabricante: 'Volkswagen', codigo: '06A115561B', compat: [{ marca: 'Volkswagen', modelo: 'Gol', motor: '1.6' }] },
-    { id: 10, pecaId: 3, tipo: 'OEM', fabricante: 'Fiat', codigo: '55206728', compat: [{ marca: 'Fiat', modelo: 'Argo' }] },
-    { id: 11, pecaId: 3, tipo: 'AFTERMARKET', fabricante: 'Tecfil', codigo: 'PSL123', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
-
-    // Correia
-    { id: 12, pecaId: 4, tipo: 'OEM', fabricante: 'Chevrolet', codigo: '55568385', compat: [{ marca: 'Chevrolet', modelo: 'Onix', motor: '1.0' }] },
-    { id: 13, pecaId: 4, tipo: 'AFTERMARKET', fabricante: 'Gates', codigo: 'GT456', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
-
-    // Amortecedor
-    { id: 14, pecaId: 5, tipo: 'OEM', fabricante: 'Volkswagen', codigo: '5U0413031Q', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }] },
-    { id: 15, pecaId: 5, tipo: 'AFTERMARKET', fabricante: 'Cofap', codigo: 'AM789', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] }
-  ],
-  tabelaPrecos: {
-    'FD1234': { fornecedor: 'AutoPecas Norte', preco: 289.40 },
-    'DF6098': { fornecedor: 'Distribuidora Leste', preco: 275.00 },
-    '5U0615301A': { fornecedor: 'Concessionaria VW', preco: 450.00 },
-    'BP1234': { fornecedor: 'Distribuidora Central', preco: 145.90 },
-    'PD5678': { fornecedor: 'AutoPecas Norte', preco: 132.50 },
-    'PSL123': { fornecedor: 'AutoPecas Norte', preco: 42.00 },
-    '06A115561B': { fornecedor: 'Concessionaria VW', preco: 85.00 },
-    'GT456': { fornecedor: 'Distribuidora Leste', preco: 110.00 },
-    'AM789': { fornecedor: 'Centro Automotivo Sul', preco: 380.00 }
-  }
-};
-
-function executarPipeline() {
-  const placa = document.getElementById('selectPlaca').value;
-  const textoItens = document.getElementById('textareaItens').value;
-  const linhasItens = textoItens.split('\n').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-  const veiculo = DATABASE.veiculos[placa];
-  const container = document.getElementById('resultsContainer');
-  container.innerHTML = '';
-
-  // 1. Resolução do Veículo
-  const cardVeiculo = document.createElement('div');
-  cardVeiculo.className = 'step-card';
-  cardVeiculo.innerHTML = `
-    <div class="step-title">
-      <span>Etapa 1: Resolução de Veículo (VehicleService)</span>
-      <span class="badge" style="margin:0;">OK</span>
-    </div>
-    <div class="step-desc">Consulta por chave primária de placa no banco relacional.</div>
-    <pre>Veículo Identificado: ${veiculo.marca} ${veiculo.modelo} ${veiculo.ano} ${veiculo.motorizacao} ${veiculo.versao} (Placa: ${placa})</pre>
-  `;
-  container.appendChild(cardVeiculo);
-
-  // 2. Matching de Texto & 3. Compatibilidade
-  const itensResolvidos = [];
-  const tabelaItensHtml = [];
-  let promptContextLines = [];
-  let totalOrcamento = 0;
-
-  promptContextLines.push(`Veiculo: ${veiculo.marca} ${veiculo.modelo} ${veiculo.ano} ${veiculo.motorizacao} (placa ${placa})`);
-
-  linhasItens.forEach((termo, index) => {
-    // Normalização e matching
-    const pecaEncontrada = DATABASE.pecas.find(p => 
-      p.sinonimos.some(sin => termo.includes(sin) || sin.includes(termo))
-    );
-
-    if (!pecaEncontrada) {
-      tabelaItensHtml.push(`
-        <tr>
-          <td><strong>${termo}</strong></td>
-          <td colspan="4" style="color: #ef4444;">Não identificada no catálogo</td>
-        </tr>
-      `);
-      return;
-    }
-
-    // Filtragem de compatibilidade
-    const refsValidas = DATABASE.referencias.filter(r => {
-      if (r.pecaId !== pecaEncontrada.id) return false;
-      return r.compat.some(c => {
-        if (c.marca && c.marca !== veiculo.marca) return false;
-        if (c.modelo && c.modelo !== veiculo.modelo) return false;
-        if (c.anoMin && veiculo.ano < c.anoMin) return false;
-        if (c.anoMax && veiculo.ano > c.anoMax) return false;
-        if (c.motor && c.motor !== veiculo.motorizacao) return false;
-        return true;
-      });
-    });
-
-    const oemRef = refsValidas.find(r => r.tipo === 'OEM');
-    const afterRef = refsValidas.find(r => r.tipo === 'AFTERMARKET');
-    const refPrincipal = afterRef || oemRef;
-
-    let cotacao = null;
-    if (refPrincipal && DATABASE.tabelaPrecos[refPrincipal.codigo]) {
-      cotacao = DATABASE.tabelaPrecos[refPrincipal.codigo];
-    } else {
-      cotacao = { fornecedor: 'Distribuidora Padrão', preco: 180.00 };
-    }
-
-    totalOrcamento += cotacao.preco;
-
-    // Linha para o contexto de IA
-    const refsString = refsValidas.map(r => `Ref. ${r.tipo} (${r.fabricante}): ${r.codigo}`).join(' | ');
-    promptContextLines.push(`Item ${index + 1}: ${pecaEncontrada.nome} — ${refsString}`);
-
-    tabelaItensHtml.push(`
-      <tr>
-        <td><strong>${termo}</strong><br><small style="color:var(--text-muted)">(${pecaEncontrada.nome})</small></td>
-        <td><span class="badge-oem">${oemRef ? oemRef.codigo : 'N/A'}</span></td>
-        <td><span class="badge-aftermarket">${afterRef ? afterRef.codigo + ' (' + afterRef.fabricante + ')' : 'N/A'}</span></td>
-        <td>${cotacao.fornecedor}</td>
-        <td><strong>R$ ${cotacao.preco.toFixed(2)}</strong></td>
-      </tr>
-    `);
-  });
-
-  // Etapa 2 & 3: Tabela de Cross-Reference e Resolução
-  const cardResolucao = document.createElement('div');
-  cardResolucao.className = 'step-card';
-  cardResolucao.innerHTML = `
-    <div class="step-title">
-      <span>Etapa 2 & 3: Matching de Texto e Validação de Compatibilidade</span>
-      <span class="badge" style="margin:0;">OK</span>
-    </div>
-    <div class="step-desc">Normalização de sinônimos via <code>PartMatchingService</code> e junção com regras de compatibilidade OEM/Aftermarket.</div>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Item Solicitado</th>
-            <th>Ref. OEM Montadora</th>
-            <th>Ref. Aftermarket</th>
-            <th>Fornecedor Cotado</th>
-            <th>Preço</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tabelaItensHtml.join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-  container.appendChild(cardResolucao);
-
-  // Etapa 4: Engenharia de Contexto para a IA
-  const cardPrompt = document.createElement('div');
-  cardPrompt.className = 'step-card';
-  cardPrompt.innerHTML = `
-    <div class="step-title">
-      <span>Etapa 4: Contexto Estruturado para o Agente de IA (MockAiAgentService)</span>
-      <span class="badge" style="margin:0; background:rgba(245,158,11,0.15); color:var(--warning); border-color:var(--warning);">GROUNDING</span>
-    </div>
-    <div class="step-desc">
-      O agente de IA recebe dados 100% verificados e referenciados, eliminando alucinações de catálogo e erros de modelo:
-    </div>
-    <pre>${promptContextLines.join('\n')}</pre>
-  `;
-  container.appendChild(cardPrompt);
-
-  // Etapa 5: Fechamento do Orçamento
-  const cardFechamento = document.createElement('div');
-  cardFechamento.className = 'step-card';
-  cardFechamento.innerHTML = `
-    <div class="step-title">
-      <span>Etapa 5: Orçamento Final Gerado</span>
-      <span class="badge" style="margin:0;">SUCESSO</span>
-    </div>
-    <div class="total-banner">
-      <div>
-        <div style="font-size: 0.9rem; color: var(--text-muted);">Total Cotado para ${veiculo.marca} ${veiculo.modelo} (${placa}):</div>
-        <div style="font-size: 0.85rem; color: #cbd5e1;">Pronto para integração com ERP / Envio ao cliente.</div>
+    <!-- Scenario Switcher -->
+    <div class="scenario-picker">
+      <div class="scenario-label">
+        <span>⚙️ Cenários Didáticos Pré-configurados:</span>
       </div>
-      <div class="total-price">R$ ${totalOrcamento.toFixed(2)}</div>
+      <div class="scenario-buttons">
+        <button class="btn-scenario active" id="btnSpin" onclick="carregarCenario('spin')">
+          🚗 Chevrolet Spin (Fora de Casa • IA • Chassi VIN)
+        </button>
+        <button class="btn-scenario" id="btnGol" onclick="carregarCenario('gol')">
+          🚙 VW Gol 1.6 (Dentro de Casa • Freios OEM)
+        </button>
+        <button class="btn-scenario" id="btnOnix" onclick="carregarCenario('onix')">
+          🚗 GM Onix 1.0 (Validação de Motorização)
+        </button>
+      </div>
     </div>
-  `;
-  container.appendChild(cardFechamento);
-}
 
-// Inicializar na carga da página
-window.onload = function() {
-  executarPipeline();
-};
-</script>
+    <!-- Query Bar -->
+    <section class="query-header">
+      <div class="query-form">
+        <div class="form-group">
+          <label>Placa do Veículo</label>
+          <input type="text" id="inputPlaca" class="input-field" value="OJZ0E30" style="text-transform: uppercase;">
+        </div>
+        <div class="form-group">
+          <label>Peça Solicitada (Linguagem Livre)</label>
+          <input type="text" id="inputPeca" class="input-field" value="CORREIA DENTADA">
+        </div>
+        <button class="btn-search" onclick="simularBusca()">
+          <span>🔍</span> Consultar
+        </button>
+      </div>
+    </section>
 
+    <!-- Operational Dashboard Grid -->
+    <div class="dashboard-grid">
+
+      <!-- Left Column: Nível 1 - DENTRO DE CASA -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🏠 Nível 1: Buscar Item por Item</span>
+          </div>
+          <span class="badge-pill badge-green">Fontes Internas</span>
+        </div>
+        <div class="card-body">
+
+          <!-- Internal Checklist -->
+          <div class="checklist-grid">
+            <div class="check-item"><span class="check-icon">✓</span> Identificando o veículo</div>
+            <div class="check-item"><span class="check-icon">✓</span> Histórico deste carro</div>
+            <div class="check-item"><span class="check-icon">✓</span> Carros do mesmo modelo</div>
+            <div class="check-item"><span class="check-icon">✓</span> Aplicações do estoque</div>
+            <div class="check-item"><span class="check-icon">✓</span> Conferindo saldo e vaga</div>
+            <div class="check-item"><span class="check-icon">✓</span> Separando o desconhecido</div>
+          </div>
+
+          <!-- Vehicle Info -->
+          <div class="vehicle-info-box">
+            <div class="vehicle-name" id="displayVeiculo">CHEVROLET SPIN 1.8 LT ECONOFLEX</div>
+            <div class="vin-code" id="displayVin">Chassi: 9BGJB75Z0DB182243 • Placa: OJZ0E30</div>
+          </div>
+
+          <!-- Status of the Requested Item -->
+          <div class="item-status-row">
+            <div>
+              <div class="item-name" id="displayPecaNome">CORREIA DENTADA</div>
+              <div style="font-size: 0.78rem; color: var(--text-dark);" id="displayPecaDesc">
+                nenhuma fonte interna conhece esta peça para este carro
+              </div>
+            </div>
+            <span class="badge-pill badge-orange" id="displayPecaBadge">precisa consultar</span>
+          </div>
+
+          <!-- Confirmation Block for WhatsApp -->
+          <div class="whatsapp-box">
+            <div class="whatsapp-header">
+              <span class="whatsapp-title">Bloco de Confirmação (Balcão / WhatsApp)</span>
+              <button class="btn-copy" onclick="copiarBlocoWhatsApp()">
+                <span>📋</span> Copiar Bloco
+              </button>
+            </div>
+            <div class="whatsapp-preview" id="whatsappContent">
+*Confira, corrija a quantidade e cole no chat. Só as linhas OK são lançadas.*
+Nº da OS / Orçamento: 5297
+Mão de Obra (R$): 189,00
+Fecharam: 0 com código | 1 sem cadastro
+
+Quantidade de cada item:
+X CORREIA DENTADA 1
+
+Observações:
+• conferir rótulo do óleo
+• medir a correia e dentes antes de comprar
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Column: Nível 2 - FORA DE CASA (AI AGENT) -->
+      <div class="card" id="cardAiSection">
+        <div class="card-header" style="border-bottom-color: rgba(168, 85, 247, 0.3);">
+          <div class="card-title" style="color: #d8b4fe;">
+            <span>🤖 Nível 2: Procurando Fora de Casa</span>
+          </div>
+          <span class="badge-pill" style="background: rgba(168, 85, 247, 0.2); color: #d8b4fe;">Web Agent</span>
+        </div>
+        <div class="card-body">
+
+          <!-- AI Action Banner -->
+          <div class="ai-banner">
+            <div>
+              <div class="ai-banner-title">Pesquisa Autônoma com IA</div>
+              <div class="ai-banner-desc">Varredura em catálogos B2B, distribuidores e decodificação técnica</div>
+            </div>
+            <button class="btn-ai" onclick="executarPesquisaIa()">
+              <span>⚡</span> Pesquisar com IA
+            </button>
+          </div>
+
+          <!-- References Table -->
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Referência</th>
+                  <th>Marca</th>
+                  <th>Tipo</th>
+                  <th>Especificação / Aplicação</th>
+                </tr>
+              </thead>
+              <tbody id="tableReferencesBody">
+                <tr>
+                  <td><span class="ref-code">CT874</span></td>
+                  <td><span class="brand-tag">CONTITECH</span></td>
+                  <td><span class="spec-text">outro</span></td>
+                  <td class="spec-text">Correia dentada 111 dentes x 17 mm, perfil HTD, passo 9,5 mm - Spin 1.8 8V SPE/4</td>
+                </tr>
+                <tr>
+                  <td><span class="ref-code">40433X17XS</span></td>
+                  <td><span class="brand-tag">GATES</span></td>
+                  <td><span class="spec-text">outro</span></td>
+                  <td class="spec-text">Correia dentada 111 dentes / 17 x 1057 - GM Spin 1.8 8V, Prisma, Onix, Corsa</td>
+                </tr>
+                <tr>
+                  <td><span class="ref-code">111SP170H</span></td>
+                  <td><span class="brand-tag">DAYCO</span></td>
+                  <td><span class="spec-text">outro</span></td>
+                  <td class="spec-text">Correia dentada Spin 1.8 equivalente a CT874 (111 dentes x 17mm)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- "Confira antes de comprar" Guardrail Box -->
+          <div class="guardrail-box">
+            <div class="guardrail-title">
+              <span>⚠️</span> Confira antes de comprar (Auditoria de Engenharia)
+            </div>
+            <ul class="guardrail-list" id="guardrailList">
+              <li><span class="guardrail-highlight">Conflito de ano:</span> ficha indica 2018 em diante, mas o chassi <strong>9BGJB75Z0DB182243</strong> sugere ano-modelo 2013 (10º dígito 'D'). Não afeta a correia dentada, mas invalida outros itens sem fechar o ano.</li>
+              <li><span class="guardrail-highlight">Referência GM 7083436:</span> citada pelo mercado (anúncio de varejo) — serve apenas para conferência de balcão, não como fonte primária.</li>
+              <li><span class="guardrail-highlight">Recomendação Mecânica Proativa:</span> <strong>Tensionador não foi pedido</strong>, mas a prática padrão e orientação de catálogo é substituí-lo junto com a correia dentada.</li>
+              <li><span class="guardrail-highlight">Conferência de balcão recomendada:</span> contar <strong>111 dentes</strong> e medir largura da correia removida (<strong>17 mm</strong>).</li>
+            </ul>
+          </div>
+
+          <!-- 69 URLs Consultadas Drawer -->
+          <div class="crawler-drawer">
+            <div class="crawler-trigger" onclick="toggleCrawler()">
+              <span>▼ 69 endereços consultados na web</span>
+              <span style="font-size: 0.75rem; color: #a1a1aa;">Accioly GM, Mercado Livre, Bosch...</span>
+            </div>
+            <div class="crawler-list" id="crawlerList">
+              <div>• https://www.mercadolivre.com.br/kit-correia-dentada-tensor-spin-18-8v-2020-2021-2022/</div>
+              <div>• https://www.acciolygm.com.br/correia-dentada-motor-1-4-1-8-8v-gas-flex-cobalt-montana-de-2011-a-2016</div>
+              <div>• https://autopecasfama.com.br/produtos/correia-dentada-cobalt-spin-onix-prisma1-01-41-8-ptqa/</div>
+              <div>• https://apolloautopecas.com.br/produto/correia-dentada-contitech-ct874-111-dentes-fiat-palio-gm-celta-agile-cobalt/</div>
+              <div>• https://www.dispemec.com.br/correia-dentada-chevrolet-spin-1-8-8v-2013-ate-2023</div>
+              <div>• https://loja.chevroletnova.com.br/correia-dentada-spin-1-8-8v/</div>
+              <div>• https://omecanico.com.br/troca-da-correia-dentada-do-chevrolet-spin-1-8/</div>
+            </div>
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="action-row">
+            <div class="save-note">
+              Entra tudo como <strong>não conferido</strong>, com a fonte anotada — <em>laranja na tela até alguém ver a peça na mão</em>.
+            </div>
+            <button class="btn-save" onclick="gravarNoSistema()">
+              💾 Gravar no Sistema
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toastMessage">
+    <span>✓</span> Bloco copiado com sucesso para a área de transferência!
+  </div>
+
+  <script>
+    const SCENARIOS = {
+      spin: {
+        placa: 'OJZ0E30',
+        peca: 'CORREIA DENTADA',
+        veiculo: 'CHEVROLET SPIN 1.8 LT ECONOFLEX',
+        chassi: 'Chassi: 9BGJB75Z0DB182243 • Placa: OJZ0E30',
+        statusDesc: 'nenhuma fonte interna conhece esta peça para este carro',
+        badgeTexto: 'precisa consultar',
+        badgeClass: 'badge-orange',
+        custo: 'R$ 3,15',
+        whatsapp: `*Confira, corrija a quantidade e cole no chat. Só as linhas OK são lançadas.*
+Nº da OS / Orçamento: 5297
+Mão de Obra (R$): 189,00
+Fecharam: 0 com código | 1 sem cadastro
+
+Quantidade de cada item:
+X CORREIA DENTADA 1
+
+Observações:
+• conferir rótulo do óleo
+• medir a correia e dentes antes de comprar (111 dentes x 17 mm)
+• sugerir troca do tensionador ao cliente`,
+        referencias: [
+          { ref: 'CT874', marca: 'CONTITECH', tipo: 'outro', spec: 'Correia dentada 111 dentes x 17 mm, perfil HTD, passo 9,5 mm - Spin 1.8 8V SPE/4' },
+          { ref: '40433X17XS', marca: 'GATES', tipo: 'outro', spec: 'Correia dentada 111 dentes / 17 x 1057 - GM Spin 1.8 8V, Prisma, Onix, Corsa' },
+          { ref: '111SP170H', marca: 'DAYCO', tipo: 'outro', spec: 'Correia dentada Spin 1.8 equivalente a CT874 (111 dentes x 17mm)' }
+        ],
+        guardrails: [
+          '<strong>Conflito de ano:</strong> ficha indica 2018 em diante, mas o chassi 9BGJB75Z0DB182243 sugere ano-modelo 2013 (10º dígito "D"). Não afeta a correia dentada, mas invalida outros itens sem fechar o ano.',
+          '<strong>Referência GM 7083436:</strong> citada pelo mercado (anúncio de varejo) — serve apenas para conferência de balcão, não como fonte primária.',
+          '<strong>Recomendação Mecânica Proativa:</strong> Tensionador não foi pedido, mas a prática padrão e orientação de catálogo é substituí-lo junto com a correia dentada.',
+          '<strong>Conferência de balcão recomendada:</strong> contar 111 dentes e medir largura da correia removida (17 mm).'
+        ]
+      },
+      gol: {
+        placa: 'ABC1D23',
+        peca: 'DISCO E PASTILHA DIANTEIRA',
+        veiculo: 'VOLKSWAGEN GOL 1.6 TRENDLINE 2015',
+        chassi: 'Chassi: 9BWCA05U0FT029182 • Placa: ABC1D23',
+        statusDesc: 'resolvido diretamente no histórico da oficina e estoque local',
+        badgeTexto: 'estoque próprio',
+        badgeClass: 'badge-green',
+        custo: 'R$ 0,00 (Nível 1)',
+        whatsapp: `*Confira, corrija a quantidade e cole no chat. Só as linhas OK são lançadas.*
+Nº da OS / Orçamento: 5304
+Mão de Obra (R$): 140,00
+Fecharam: 2 com código | 0 sem cadastro
+
+Itens Resolvidos:
+✓ DISCO DE FREIO DIANTEIRO: 5U0615301A / Fras-le FD1234 (R$ 289,40)
+✓ PASTILHA DIANTEIRA: 5U0698151 / Bosch BP1234 (R$ 145,90)
+
+Observações:
+• conferir espessura mínima do disco no paquímetro`,
+        referencias: [
+          { ref: '5U0615301A', marca: 'VOLKSWAGEN', tipo: 'OEM', spec: 'Disco de freio dianteiro ventilado 256mm - Gol G6 1.6' },
+          { ref: 'FD1234', marca: 'FRAS-LE', tipo: 'AFTERMARKET', spec: 'Disco de freio dianteiro ventilado (par)' },
+          { ref: 'BP1234', marca: 'BOSCH', tipo: 'AFTERMARKET', spec: 'Jogo de pastilhas de freio dianteiras c/ sensor' }
+        ],
+        guardrails: [
+          '<strong>Compatibilidade Confirmada:</strong> Gol 1.6 utiliza disco de 256mm ventilado (diferente da versão 1.0 que utiliza disco sólido de 239mm).',
+          '<strong>Saldo em Estoque:</strong> 2 jogos de pastilhas Bosch BP1234 disponíveis na prateleira B-14.',
+          '<strong>Histórico da Placa:</strong> Última troca de pastilha realizada há 38.000 km na própria oficina.'
+        ]
+      },
+      onix: {
+        placa: 'XYZ2E45',
+        peca: 'FILTRO DE OLEO + CORREIA DENTADA',
+        veiculo: 'CHEVROLET ONIX 1.0 LT SPE/4 2019',
+        chassi: 'Chassi: 9BGKL48U0KG192834 • Placa: XYZ2E45',
+        statusDesc: 'filtro em estoque; correia identificada via compatibilidade de motor SPE/4',
+        badgeTexto: 'validado',
+        badgeClass: 'badge-green',
+        custo: 'R$ 0,00',
+        whatsapp: `*Confira, corrija a quantidade e cole no chat. Só as linhas OK são lançadas.*
+Nº da OS / Orçamento: 5310
+Mão de Obra (R$): 210,00
+Fecharam: 2 com código | 0 sem cadastro
+
+Itens Resolvidos:
+✓ FILTRO DE ÓLEO: PSL123 Tecfil (R$ 42,00)
+✓ CORREIA DENTADA: Gates GT456 (R$ 110,00)
+
+Observações:
+• conferir tipo de óleo especificado (Dexos 1 Gen 2 5W30)`,
+        referencias: [
+          { ref: 'PSL123', marca: 'TECFIL', tipo: 'AFTERMARKET', spec: 'Filtro de óleo blindado Onix 1.0 / 1.4 SPE/4' },
+          { ref: '55568385', marca: 'CHEVROLET', tipo: 'OEM', spec: 'Correia sincronizadora do comando de válvulas' },
+          { ref: 'GT456', marca: 'GATES', tipo: 'AFTERMARKET', spec: 'Correia dentada perfil HNBR alta temperatura' }
+        ],
+        guardrails: [
+          '<strong>Regra de Motorização:</strong> Motor SPE/4 4 cilindros usa correia dentada tradicional a seco (NÃO confundir com Onix Plus 3 cilindros que usa correia banhada a óleo).',
+          '<strong>Marca de Preferência:</strong> Filtro Tecfil faz parte da lista homologada da oficina.'
+        ]
+      }
+    };
+
+    function carregarCenario(tipo) {
+      document.querySelectorAll('.btn-scenario').forEach(b => b.classList.remove('active'));
+      if (tipo === 'spin') document.getElementById('btnSpin').classList.add('active');
+      if (tipo === 'gol') document.getElementById('btnGol').classList.add('active');
+      if (tipo === 'onix') document.getElementById('btnOnix').classList.add('active');
+
+      const data = SCENARIOS[tipo];
+      document.getElementById('inputPlaca').value = data.placa;
+      document.getElementById('inputPeca').value = data.peca;
+      document.getElementById('displayVeiculo').innerText = data.veiculo;
+      document.getElementById('displayVin').innerText = data.chassi;
+      document.getElementById('displayPecaNome').innerText = data.peca;
+      document.getElementById('displayPecaDesc').innerText = data.statusDesc;
+      
+      const badge = document.getElementById('displayPecaBadge');
+      badge.innerText = data.badgeTexto;
+      badge.className = `badge-pill ${data.badgeClass}`;
+
+      document.getElementById('finopsIndicator').innerHTML = `⚡ Custo desta busca: <strong>${data.custo}</strong>`;
+      document.getElementById('whatsappContent').innerText = data.whatsapp;
+
+      // Render references
+      const tbody = document.getElementById('tableReferencesBody');
+      tbody.innerHTML = data.referencias.map(r => `
+        <tr>
+          <td><span class="ref-code">${r.ref}</span></td>
+          <td><span class="brand-tag">${r.marca}</span></td>
+          <td><span class="spec-text">${r.tipo}</span></td>
+          <td class="spec-text">${r.spec}</td>
+        </tr>
+      `).join('');
+
+      // Render guardrails
+      const ul = document.getElementById('guardrailList');
+      ul.innerHTML = data.guardrails.map(g => `<li>${g}</li>`).join('');
+    }
+
+    function simularBusca() {
+      const placa = document.getElementById('inputPlaca').value.toUpperCase();
+      if (placa.includes('OJZ') || placa.includes('SPIN')) {
+        carregarCenario('spin');
+      } else if (placa.includes('ABC') || placa.includes('GOL')) {
+        carregarCenario('gol');
+      } else {
+        carregarCenario('onix');
+      }
+    }
+
+    function executarPesquisaIa() {
+      const btn = document.querySelector('.btn-ai');
+      btn.innerHTML = '<span>⏳</span> Rastreado 69 URLs...';
+      setTimeout(() => {
+        btn.innerHTML = '<span>✓</span> Concluído (R$ 3,15)';
+        mostrarToast('Pesquisa IA finalizada com 3 referências e auditoria de chassi!');
+      }, 700);
+    }
+
+    function toggleCrawler() {
+      const list = document.getElementById('crawlerList');
+      list.classList.toggle('open');
+    }
+
+    function copiarBlocoWhatsApp() {
+      const texto = document.getElementById('whatsappContent').innerText;
+      navigator.clipboard.writeText(texto).then(() => {
+        mostrarToast('Bloco copiado para a área de transferência!');
+      }).catch(() => {
+        mostrarToast('Bloco pronto para colar no WhatsApp!');
+      });
+    }
+
+    function gravarNoSistema() {
+      mostrarToast('Gravado no sistema como: "Não conferido (laranja na tela)"');
+    }
+
+    function mostrarToast(mensagem) {
+      const toast = document.getElementById('toastMessage');
+      toast.innerHTML = `<span>✓</span> ${mensagem}`;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3200);
+    }
+  </script>
 </body>
 </html>
