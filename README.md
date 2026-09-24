@@ -65,9 +65,23 @@ flowchart TD
 
 ---
 
+## 📚 Documentação Didática & Demonstração Interativa
+
+- 📖 **[Estudo de Caso & Arquitetura Detalhada](docs/arquitetura-e-funcionamento.md)**: Análise completa do problema de negócio, modelagem relacional (ER), engenharia de contexto para Agentes de IA e rastreamento passo a passo.
+- 🖥️ **[Demonstração Interativa Standalone (docs/demo.html)](docs/demo.html)**: Simulação visual do pipeline de dados executável diretamente no navegador, sem precisar subir Docker, banco ou backend.
+- 📑 **[Exemplos de Chamadas de API](docs/exemplos-api.md)**: Payloads de request e response para testes via cURL ou Postman.
+
+---
+
 ## 📦 Como executar
 
-### Opção 1 — Docker Compose (recomendado)
+### Opção 0 — Demonstração Imediata (Sem Docker / Sem Banco)
+
+Para visualizar o funcionamento do pipeline e os dados mockados sem instalar dependências:
+1. Abra o arquivo [`docs/demo.html`](docs/demo.html) diretamente em seu navegador (Google Chrome, Firefox, Edge).
+2. Ou entre na pasta `frontend/`, rode `npm install && npm run dev` — o frontend agora conta com fallback didático automático caso o backend não esteja ativo.
+
+### Opção 1 — Docker Compose (Ambiente Completo)
 
 ```bash
 docker-compose up --build

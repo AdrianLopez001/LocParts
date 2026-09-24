@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoQuote Copilot — Demonstração Didática & Arquitetura</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --accent: #10b981;
+      --accent-subtle: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --code-bg: #090d16;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--accent-subtle);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 750px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary);
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    select, textarea, input {
+      width: 100%;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      width: 100%;
+      background: var(--primary);
+      color: #0f172a;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+      color: #fff;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Pipeline Step Tracker */
+    .pipeline {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .step-indicator {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      padding: 12px 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 0 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+
+    .step-indicator.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .step-indicator.done {
+      background: var(--accent-subtle);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Visualizer Tabs / Flow */
+    .results-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .step-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      padding: 14px;
+      border-radius: 8px;
+      font-family: "Fira Code", monospace, Consolas;
+      font-size: 0.88rem;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      color: #38bdf8;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--code-bg);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .badge-oem {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge-aftermarket {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .total-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(56, 189, 248, 0.1));
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .total-price {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="badge">ESTUDO DE CASO & DEMO OFFLINE</div>
+    <h1>🚗 AutoQuote Copilot</h1>
+    <p class="subtitle">
+      Demonstração didática interativa do pipeline de matching de peças automotivas, 
+      filtragem de compatibilidade e engenharia de contexto para Agente de IA.
+    </p>
+  </header>
+
+  <!-- Painel de Controle da Demonstração -->
+  <div class="grid">
+    <div class="card">
+      <h2>1. Entrada da Simulação</h2>
+      
+      <label for="selectPlaca">Veículo Cadastrado (Mock):</label>
+      <select id="selectPlaca" onchange="atualizarInfoVeiculo()">
+        <option value="ABC1D23">ABC1D23 — Volkswagen Gol 2015 1.6 Trendline</option>
+        <option value="XYZ2E45">XYZ2E45 — Chevrolet Onix 2019 1.0 LT</option>
+        <option value="JJK9B12">JJK9B12 — Fiat Argo 2021 1.3 Drive</option>
+      </select>
+
+      <label for="textareaItens">Peças Solicitadas em Texto Livre:</label>
+      <textarea id="textareaItens" rows="4">disco de freio dianteiro
+pastilha de freio dianteira
+filtro de oleo</textarea>
+
+      <button class="btn" onclick="executarPipeline()">▶ Simular Pipeline Didático</button>
+    </div>
+
+    <div class="card">
+      <h2>2. O Conceito Arquitetural</h2>
+      <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 12px;">
+        Esta PoC demonstra como <strong>evitar alucinações de LLMs</strong> ao nunca delegar identificação de catálogo diretamente para a IA:
+      </p>
+      <ul style="font-size: 0.88rem; color: #cbd5e1; padding-left: 18px; line-height: 1.8;">
+        <li><strong>Fase Determinística:</strong> O PostgreSQL valida modelo, ano e motorização através da tabela de compatibilidade.</li>
+        <li><strong>Engenharia de Contexto:</strong> Apenas referências verificadas (OEM e Aftermarket) são inseridas no prompt do agente.</li>
+        <li><strong>Agente de Cotação:</strong> A IA foca na orquestração dos fornecedores e síntese final do orçamento.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Barra de Etapas do Pipeline -->
+  <div class="pipeline">
+    <div class="step-indicator done" id="ind-1">1. Veículo</div>
+    <div class="step-indicator done" id="ind-2">2. Matching Texto</div>
+    <div class="step-indicator done" id="ind-3">3. Compatibilidade</div>
+    <div class="step-indicator done" id="ind-4">4. Contexto IA</div>
+    <div class="step-indicator done" id="ind-5">5. Cotação Final</div>
+  </div>
+
+  <!-- Resultados Detalhados do Pipeline -->
+  <div class="results-container" id="resultsContainer">
+    <!-- Gerado dinamicamente via JS -->
+  </div>
+</div>
+
+<script>
+// Base de dados sintética local idêntica ao data.sql da PoC
+const DATABASE = {
+  veiculos: {
+    'ABC1D23': { marca: 'Volkswagen', modelo: 'Gol', ano: 2015, motorizacao: '1.6', versao: 'Trendline' },
+    'XYZ2E45': { marca: 'Chevrolet', modelo: 'Onix', ano: 2019, motorizacao: '1.0', versao: 'LT' },
+    'JJK9B12': { marca: 'Fiat', modelo: 'Argo', ano: 2021, motorizacao: '1.3', versao: 'Drive' }
+  },
+  pecas: [
+    { id: 1, nome: 'Disco de freio dianteiro', categoria: 'Freios', sinonimos: ['disco de freio dianteiro', 'disco dianteiro', 'disco freio diant'] },
+    { id: 2, nome: 'Pastilha de freio dianteira', categoria: 'Freios', sinonimos: ['pastilha de freio dianteira', 'pastilha dianteira', 'pastilha freio diant'] },
+    { id: 3, nome: 'Filtro de oleo', categoria: 'Motor', sinonimos: ['filtro de oleo', 'filtro oleo', 'filtro de óleo'] },
+    { id: 4, nome: 'Correia dentada', categoria: 'Motor', sinonimos: ['correia dentada', 'correia do motor'] },
+    { id: 5, nome: 'Amortecedor dianteiro', categoria: 'Suspensao', sinonimos: ['amortecedor dianteiro', 'amortecedor diant'] }
+  ],
+  referencias: [
+    // Disco
+    { id: 1, pecaId: 1, tipo: 'OEM', fabricante: 'Volkswagen', codigo: '5U0615301A', compat: [{ marca: 'Volkswagen', modelo: 'Gol', anoMin: 2013, anoMax: 2019 }] },
+    { id: 2, pecaId: 1, tipo: 'OEM', fabricante: 'Chevrolet', codigo: '52099943', compat: [{ marca: 'Chevrolet', modelo: 'Onix', anoMin: 2017, anoMax: 2022 }] },
+    { id: 3, pecaId: 1, tipo: 'AFTERMARKET', fabricante: 'Fras-le', codigo: 'FD1234', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
+    { id: 4, pecaId: 1, tipo: 'AFTERMARKET', fabricante: 'TRW', codigo: 'DF6098', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
+    
+    // Pastilha
+    { id: 5, pecaId: 2, tipo: 'OEM', fabricante: 'Volkswagen', codigo: '5U0698151', compat: [{ marca: 'Volkswagen', modelo: 'Gol', anoMin: 2013, anoMax: 2019 }] },
+    { id: 6, pecaId: 2, tipo: 'OEM', fabricante: 'Chevrolet', codigo: '13502447', compat: [{ marca: 'Chevrolet', modelo: 'Onix', anoMin: 2017, anoMax: 2022 }] },
+    { id: 7, pecaId: 2, tipo: 'AFTERMARKET', fabricante: 'Bosch', codigo: 'BP1234', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
+    { id: 8, pecaId: 2, tipo: 'AFTERMARKET', fabricante: 'Fras-le', codigo: 'PD5678', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
+    
+    // Filtro
+    { id: 9, pecaId: 3, tipo: 'OEM', fabricante: 'Volkswagen', codigo: '06A115561B', compat: [{ marca: 'Volkswagen', modelo: 'Gol', motor: '1.6' }] },
+    { id: 10, pecaId: 3, tipo: 'OEM', fabricante: 'Fiat', codigo: '55206728', compat: [{ marca: 'Fiat', modelo: 'Argo' }] },
+    { id: 11, pecaId: 3, tipo: 'AFTERMARKET', fabricante: 'Tecfil', codigo: 'PSL123', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
+
+    // Correia
+    { id: 12, pecaId: 4, tipo: 'OEM', fabricante: 'Chevrolet', codigo: '55568385', compat: [{ marca: 'Chevrolet', modelo: 'Onix', motor: '1.0' }] },
+    { id: 13, pecaId: 4, tipo: 'AFTERMARKET', fabricante: 'Gates', codigo: 'GT456', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] },
+
+    // Amortecedor
+    { id: 14, pecaId: 5, tipo: 'OEM', fabricante: 'Volkswagen', codigo: '5U0413031Q', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }] },
+    { id: 15, pecaId: 5, tipo: 'AFTERMARKET', fabricante: 'Cofap', codigo: 'AM789', compat: [{ marca: 'Volkswagen', modelo: 'Gol' }, { marca: 'Chevrolet', modelo: 'Onix' }, { marca: 'Fiat', modelo: 'Argo' }] }
+  ],
+  tabelaPrecos: {
+    'FD1234': { fornecedor: 'AutoPecas Norte', preco: 289.40 },
+    'DF6098': { fornecedor: 'Distribuidora Leste', preco: 275.00 },
+    '5U0615301A': { fornecedor: 'Concessionaria VW', preco: 450.00 },
+    'BP1234': { fornecedor: 'Distribuidora Central', preco: 145.90 },
+    'PD5678': { fornecedor: 'AutoPecas Norte', preco: 132.50 },
+    'PSL123': { fornecedor: 'AutoPecas Norte', preco: 42.00 },
+    '06A115561B': { fornecedor: 'Concessionaria VW', preco: 85.00 },
+    'GT456': { fornecedor: 'Distribuidora Leste', preco: 110.00 },
+    'AM789': { fornecedor: 'Centro Automotivo Sul', preco: 380.00 }
+  }
+};
+
+function executarPipeline() {
+  const placa = document.getElementById('selectPlaca').value;
+  const textoItens = document.getElementById('textareaItens').value;
+  const linhasItens = textoItens.split('\n').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+  const veiculo = DATABASE.veiculos[placa];
+  const container = document.getElementById('resultsContainer');
+  container.innerHTML = '';
+
+  // 1. Resolução do Veículo
+  const cardVeiculo = document.createElement('div');
+  cardVeiculo.className = 'step-card';
+  cardVeiculo.innerHTML = `
+    <div class="step-title">
+      <span>Etapa 1: Resolução de Veículo (VehicleService)</span>
+      <span class="badge" style="margin:0;">OK</span>
+    </div>
+    <div class="step-desc">Consulta por chave primária de placa no banco relacional.</div>
+    <pre>Veículo Identificado: ${veiculo.marca} ${veiculo.modelo} ${veiculo.ano} ${veiculo.motorizacao} ${veiculo.versao} (Placa: ${placa})</pre>
+  `;
+  container.appendChild(cardVeiculo);
+
+  // 2. Matching de Texto & 3. Compatibilidade
+  const itensResolvidos = [];
+  const tabelaItensHtml = [];
+  let promptContextLines = [];
+  let totalOrcamento = 0;
+
+  promptContextLines.push(`Veiculo: ${veiculo.marca} ${veiculo.modelo} ${veiculo.ano} ${veiculo.motorizacao} (placa ${placa})`);
+
+  linhasItens.forEach((termo, index) => {
+    // Normalização e matching
+    const pecaEncontrada = DATABASE.pecas.find(p => 
+      p.sinonimos.some(sin => termo.includes(sin) || sin.includes(termo))
+    );
+
+    if (!pecaEncontrada) {
+      tabelaItensHtml.push(`
+        <tr>
+          <td><strong>${termo}</strong></td>
+          <td colspan="4" style="color: #ef4444;">Não identificada no catálogo</td>
+        </tr>
+      `);
+      return;
+    }
+
+    // Filtragem de compatibilidade
+    const refsValidas = DATABASE.referencias.filter(r => {
+      if (r.pecaId !== pecaEncontrada.id) return false;
+      return r.compat.some(c => {
+        if (c.marca && c.marca !== veiculo.marca) return false;
+        if (c.modelo && c.modelo !== veiculo.modelo) return false;
+        if (c.anoMin && veiculo.ano < c.anoMin) return false;
+        if (c.anoMax && veiculo.ano > c.anoMax) return false;
+        if (c.motor && c.motor !== veiculo.motorizacao) return false;
+        return true;
+      });
+    });
+
+    const oemRef = refsValidas.find(r => r.tipo === 'OEM');
+    const afterRef = refsValidas.find(r => r.tipo === 'AFTERMARKET');
+    const refPrincipal = afterRef || oemRef;
+
+    let cotacao = null;
+    if (refPrincipal && DATABASE.tabelaPrecos[refPrincipal.codigo]) {
+      cotacao = DATABASE.tabelaPrecos[refPrincipal.codigo];
+    } else {
+      cotacao = { fornecedor: 'Distribuidora Padrão', preco: 180.00 };
+    }
+
+    totalOrcamento += cotacao.preco;
+
+    // Linha para o contexto de IA
+    const refsString = refsValidas.map(r => `Ref. ${r.tipo} (${r.fabricante}): ${r.codigo}`).join(' | ');
+    promptContextLines.push(`Item ${index + 1}: ${pecaEncontrada.nome} — ${refsString}`);
+
+    tabelaItensHtml.push(`
+      <tr>
+        <td><strong>${termo}</strong><br><small style="color:var(--text-muted)">(${pecaEncontrada.nome})</small></td>
+        <td><span class="badge-oem">${oemRef ? oemRef.codigo : 'N/A'}</span></td>
+        <td><span class="badge-aftermarket">${afterRef ? afterRef.codigo + ' (' + afterRef.fabricante + ')' : 'N/A'}</span></td>
+        <td>${cotacao.fornecedor}</td>
+        <td><strong>R$ ${cotacao.preco.toFixed(2)}</strong></td>
+      </tr>
+    `);
+  });
+
+  // Etapa 2 & 3: Tabela de Cross-Reference e Resolução
+  const cardResolucao = document.createElement('div');
+  cardResolucao.className = 'step-card';
+  cardResolucao.innerHTML = `
+    <div class="step-title">
+      <span>Etapa 2 & 3: Matching de Texto e Validação de Compatibilidade</span>
+      <span class="badge" style="margin:0;">OK</span>
+    </div>
+    <div class="step-desc">Normalização de sinônimos via <code>PartMatchingService</code> e junção com regras de compatibilidade OEM/Aftermarket.</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Item Solicitado</th>
+            <th>Ref. OEM Montadora</th>
+            <th>Ref. Aftermarket</th>
+            <th>Fornecedor Cotado</th>
+            <th>Preço</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tabelaItensHtml.join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  container.appendChild(cardResolucao);
+
+  // Etapa 4: Engenharia de Contexto para a IA
+  const cardPrompt = document.createElement('div');
+  cardPrompt.className = 'step-card';
+  cardPrompt.innerHTML = `
+    <div class="step-title">
+      <span>Etapa 4: Contexto Estruturado para o Agente de IA (MockAiAgentService)</span>
+      <span class="badge" style="margin:0; background:rgba(245,158,11,0.15); color:var(--warning); border-color:var(--warning);">GROUNDING</span>
+    </div>
+    <div class="step-desc">
+      O agente de IA recebe dados 100% verificados e referenciados, eliminando alucinações de catálogo e erros de modelo:
+    </div>
+    <pre>${promptContextLines.join('\n')}</pre>
+  `;
+  container.appendChild(cardPrompt);
+
+  // Etapa 5: Fechamento do Orçamento
+  const cardFechamento = document.createElement('div');
+  cardFechamento.className = 'step-card';
+  cardFechamento.innerHTML = `
+    <div class="step-title">
+      <span>Etapa 5: Orçamento Final Gerado</span>
+      <span class="badge" style="margin:0;">SUCESSO</span>
+    </div>
+    <div class="total-banner">
+      <div>
+        <div style="font-size: 0.9rem; color: var(--text-muted);">Total Cotado para ${veiculo.marca} ${veiculo.modelo} (${placa}):</div>
+        <div style="font-size: 0.85rem; color: #cbd5e1;">Pronto para integração com ERP / Envio ao cliente.</div>
+      </div>
+      <div class="total-price">R$ ${totalOrcamento.toFixed(2)}</div>
+    </div>
+  `;
+  container.appendChild(cardFechamento);
+}
+
+// Inicializar na carga da página
+window.onload = function() {
+  executarPipeline();
+};
+</script>
+
+</body>
+</html>
