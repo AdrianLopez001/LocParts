@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema CARTEC Copilot — Demonstração Operacional & Arquitetura</title>
+  <title>LocParts Copilot — Demonstração Operacional & AI Agent Harness</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
       --border: #24324a;
       --border-focus: #38bdf8;
       
-      --bosch-blue: #00d2ff;
+      --brand-blue: #0284c7;
       --primary: #38bdf8;
       --primary-glow: rgba(56, 189, 248, 0.25);
       
@@ -80,9 +80,9 @@
       color: #fff;
       font-weight: 900;
       font-size: 1.1rem;
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 8px;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
       box-shadow: 0 0 15px var(--primary-glow);
     }
 
@@ -133,7 +133,7 @@
       border-radius: 6px;
     }
 
-    /* Main Container */
+    /* Main Content */
     .main-content {
       max-width: 1200px;
       width: 100%;
@@ -684,9 +684,9 @@
   <!-- Top Bar -->
   <header class="topbar">
     <div class="brand">
-      <div class="brand-logo">CARTEC</div>
+      <div class="brand-logo">LOCPARTS</div>
       <div class="brand-title">
-        <span>AutoQuote Copilot</span>
+        <span>LocParts Copilot</span>
         <span class="badge-status">Hostinger VPS • Online</span>
       </div>
     </div>
@@ -722,8 +722,8 @@
     <section class="query-header">
       <div class="query-form">
         <div class="form-group">
-          <label>Placa do Veículo</label>
-          <input type="text" id="inputPlaca" class="input-field" value="OJZ0E30" style="text-transform: uppercase;">
+          <label>Placa do Veículo (Sintética)</label>
+          <input type="text" id="inputPlaca" class="input-field" value="LCP8A19" style="text-transform: uppercase;">
         </div>
         <div class="form-group">
           <label>Peça Solicitada (Linguagem Livre)</label>
@@ -761,7 +761,7 @@
           <!-- Vehicle Info -->
           <div class="vehicle-info-box">
             <div class="vehicle-name" id="displayVeiculo">CHEVROLET SPIN 1.8 LT ECONOFLEX</div>
-            <div class="vin-code" id="displayVin">Chassi: 9BGJB75Z0DB182243 • Placa: OJZ0E30</div>
+            <div class="vin-code" id="displayVin">Chassi: 9BGJB75Z0DB837194 • Placa: LCP8A19</div>
           </div>
 
           <!-- Status of the Requested Item -->
@@ -794,7 +794,8 @@ X CORREIA DENTADA 1
 
 Observações:
 • conferir rótulo do óleo
-• medir a correia e dentes antes de comprar
+• medir a correia e dentes antes de comprar (111 dentes x 17 mm)
+• sugerir troca do tensionador ao cliente
             </div>
           </div>
 
@@ -807,15 +808,15 @@ Observações:
           <div class="card-title" style="color: #d8b4fe;">
             <span>🤖 Nível 2: Procurando Fora de Casa</span>
           </div>
-          <span class="badge-pill" style="background: rgba(168, 85, 247, 0.2); color: #d8b4fe;">Web Agent</span>
+          <span class="badge-pill" style="background: rgba(168, 85, 247, 0.2); color: #d8b4fe;">AI Agent Harness</span>
         </div>
         <div class="card-body">
 
           <!-- AI Action Banner -->
           <div class="ai-banner">
             <div>
-              <div class="ai-banner-title">Pesquisa Autônoma com IA</div>
-              <div class="ai-banner-desc">Varredura em catálogos B2B, distribuidores e decodificação técnica</div>
+              <div class="ai-banner-title">AI Agent Harness (Claude Runner)</div>
+              <div class="ai-banner-desc">Varredura sandboxed em catálogos B2B, distribuidores e auditoria de chassi</div>
             </div>
             <button class="btn-ai" onclick="executarPesquisaIa()">
               <span>⚡</span> Pesquisar com IA
@@ -862,7 +863,7 @@ Observações:
               <span>⚠️</span> Confira antes de comprar (Auditoria de Engenharia)
             </div>
             <ul class="guardrail-list" id="guardrailList">
-              <li><span class="guardrail-highlight">Conflito de ano:</span> ficha indica 2018 em diante, mas o chassi <strong>9BGJB75Z0DB182243</strong> sugere ano-modelo 2013 (10º dígito 'D'). Não afeta a correia dentada, mas invalida outros itens sem fechar o ano.</li>
+              <li><span class="guardrail-highlight">Conflito de ano:</span> ficha indica 2018 em diante, mas o chassi <strong>9BGJB75Z0DB837194</strong> sugere ano-modelo 2013 (10º dígito 'D'). Não afeta a correia dentada, mas invalida outros itens sem fechar o ano.</li>
               <li><span class="guardrail-highlight">Referência GM 7083436:</span> citada pelo mercado (anúncio de varejo) — serve apenas para conferência de balcão, não como fonte primária.</li>
               <li><span class="guardrail-highlight">Recomendação Mecânica Proativa:</span> <strong>Tensionador não foi pedido</strong>, mas a prática padrão e orientação de catálogo é substituí-lo junto com a correia dentada.</li>
               <li><span class="guardrail-highlight">Conferência de balcão recomendada:</span> contar <strong>111 dentes</strong> e medir largura da correia removida (<strong>17 mm</strong>).</li>
@@ -873,7 +874,7 @@ Observações:
           <div class="crawler-drawer">
             <div class="crawler-trigger" onclick="toggleCrawler()">
               <span>▼ 69 endereços consultados na web</span>
-              <span style="font-size: 0.75rem; color: #a1a1aa;">Accioly GM, Mercado Livre, Bosch...</span>
+              <span style="font-size: 0.75rem; color: #a1a1aa;">Accioly GM, Mercado Livre, Catálogos...</span>
             </div>
             <div class="crawler-list" id="crawlerList">
               <div>• https://www.mercadolivre.com.br/kit-correia-dentada-tensor-spin-18-8v-2020-2021-2022/</div>
@@ -911,10 +912,10 @@ Observações:
   <script>
     const SCENARIOS = {
       spin: {
-        placa: 'OJZ0E30',
+        placa: 'LCP8A19',
         peca: 'CORREIA DENTADA',
         veiculo: 'CHEVROLET SPIN 1.8 LT ECONOFLEX',
-        chassi: 'Chassi: 9BGJB75Z0DB182243 • Placa: OJZ0E30',
+        chassi: 'Chassi: 9BGJB75Z0DB837194 • Placa: LCP8A19',
         statusDesc: 'nenhuma fonte interna conhece esta peça para este carro',
         badgeTexto: 'precisa consultar',
         badgeClass: 'badge-orange',
@@ -937,17 +938,17 @@ Observações:
           { ref: '111SP170H', marca: 'DAYCO', tipo: 'outro', spec: 'Correia dentada Spin 1.8 equivalente a CT874 (111 dentes x 17mm)' }
         ],
         guardrails: [
-          '<strong>Conflito de ano:</strong> ficha indica 2018 em diante, mas o chassi 9BGJB75Z0DB182243 sugere ano-modelo 2013 (10º dígito "D"). Não afeta a correia dentada, mas invalida outros itens sem fechar o ano.',
+          '<strong>Conflito de ano:</strong> ficha indica 2018 em diante, mas o chassi 9BGJB75Z0DB837194 sugere ano-modelo 2013 (10º dígito "D"). Não afeta a correia dentada, mas invalida outros itens sem fechar o ano.',
           '<strong>Referência GM 7083436:</strong> citada pelo mercado (anúncio de varejo) — serve apenas para conferência de balcão, não como fonte primária.',
           '<strong>Recomendação Mecânica Proativa:</strong> Tensionador não foi pedido, mas a prática padrão e orientação de catálogo é substituí-lo junto com a correia dentada.',
           '<strong>Conferência de balcão recomendada:</strong> contar 111 dentes e medir largura da correia removida (17 mm).'
         ]
       },
       gol: {
-        placa: 'ABC1D23',
+        placa: 'RLB3C71',
         peca: 'DISCO E PASTILHA DIANTEIRA',
         veiculo: 'VOLKSWAGEN GOL 1.6 TRENDLINE 2015',
-        chassi: 'Chassi: 9BWCA05U0FT029182 • Placa: ABC1D23',
+        chassi: 'Chassi: 9BWCA05U0FT184920 • Placa: RLB3C71',
         statusDesc: 'resolvido diretamente no histórico da oficina e estoque local',
         badgeTexto: 'estoque próprio',
         badgeClass: 'badge-green',
@@ -975,10 +976,10 @@ Observações:
         ]
       },
       onix: {
-        placa: 'XYZ2E45',
+        placa: 'PQS9J42',
         peca: 'FILTRO DE OLEO + CORREIA DENTADA',
         veiculo: 'CHEVROLET ONIX 1.0 LT SPE/4 2019',
-        chassi: 'Chassi: 9BGKL48U0KG192834 • Placa: XYZ2E45',
+        chassi: 'Chassi: 9BGKL48U0KG829143 • Placa: PQS9J42',
         statusDesc: 'filtro em estoque; correia identificada via compatibilidade de motor SPE/4',
         badgeTexto: 'validado',
         badgeClass: 'badge-green',
@@ -1045,9 +1046,9 @@ Observações:
 
     function simularBusca() {
       const placa = document.getElementById('inputPlaca').value.toUpperCase();
-      if (placa.includes('OJZ') || placa.includes('SPIN')) {
+      if (placa.includes('LCP') || placa.includes('SPIN')) {
         carregarCenario('spin');
-      } else if (placa.includes('ABC') || placa.includes('GOL')) {
+      } else if (placa.includes('RLB') || placa.includes('GOL') || placa.includes('ABC')) {
         carregarCenario('gol');
       } else {
         carregarCenario('onix');

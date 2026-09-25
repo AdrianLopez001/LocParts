@@ -1,13 +1,13 @@
-# 🚗 AutoQuote Copilot | Automotive Parts Matcher & AI Quotation Engine
+# 🚗 LocParts Copilot | Automotive Parts Matcher & AI Quotation Engine
 
 PoC de estudo/portfolio de um sistema real que desenvolvi para automatizar a
 identificação de peças por placa veicular e a montagem de orçamentos cotados.
-Esta versão pública roda com **dados 100% sintéticos** e com a etapa de
+Esta versão pública roda com **dados sintéticos** e com a etapa de
 "agente de IA" **simulada** (`MockAiAgentService`), para não depender de
 chave de API paga nem de acesso a sistemas internos.
 
 <p align="center">
-  <img src="docs/screenshot-spin.png" alt="Sistema CARTEC Copilot - Interface Operacional" width="100%" style="border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+  <img src="docs/screenshot-spin.png" alt="LocParts Copilot - Interface Operacional" width="100%" style="border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
 </p>
 
 ---
