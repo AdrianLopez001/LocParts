@@ -1,5 +1,13 @@
 # 🚗 LocParts Copilot | Automotive Parts Matcher & AI Quotation Engine
 
+<p align="left">
+  <img src="https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 17" />
+  <img src="https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 3" />
+  <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+</p>
+
 PoC de estudo/portfolio de um sistema real que desenvolvi para automatizar a
 identificação de peças por placa veicular e a montagem de orçamentos cotados.
 Esta versão pública roda com **dados sintéticos** e com a etapa de
